@@ -1,6 +1,6 @@
 # Predicción de Contaminación Sónica en Cuenca 🇪🇨
 
-Este proyecto tiene como objetivo **predecir los niveles de contaminación acústica en la ciudad de Cuenca (Ecuador)** aplicando un enfoque de **aprendizaje profundo espacio–temporal**, inspirado en el artículo *Noise Pollution Prediction in a Densely Populated City Using a Spatio-Temporal Deep Learning Approach*.  
+Este proyecto tiene como objetivo **predecir los niveles de contaminación acústica en la ciudad de Cuenca (Ecuador)** aplicando un enfoque de **aprendizaje profundo espacio–temporal**.  
 
 La implementación se adapta a las condiciones locales: en Cuenca se cuenta con **9 puntos de monitoreo continuo** que actúan como nodos en el grafo urbano.
 
@@ -59,7 +59,7 @@ La implementación se adapta a las condiciones locales: en Cuenca se cuenta con 
 
 1. Clonar el repositorio:  
    ```bash
-   git clone https://github.com/tu_usuario/nombre_repositorio.git
+   git clone https://github.com/aristring/ruido-cuenca.git
    cd nombre_repositorio
    ```
 
@@ -77,12 +77,3 @@ La implementación se adapta a las condiciones locales: en Cuenca se cuenta con 
    ```bash
    python src/models/train.py
    ```
-
----
-
-## 📍 Próximos pasos
-
-- Implementar scraping robusto y programado.  
-- Validar consistencia de series temporales de los 9 nodos.  
-- Ajustar hiperparámetros del modelo a la escala de Cuenca.  
-- Visualizar resultados en mapas de calor y dashboards.  
