@@ -1,0 +1,19 @@
+# Web scraping
+requests
+beautifulsoup4
+selenium
+
+# Análisis y manipulación de datos
+pandas
+numpy
+
+# Visualización y análisis exploratorio
+matplotlib
+seaborn
+
+# Machine learning / modelos
+scikit-learn
+torch
+
+# Utilidad para barra de progreso
+tqdm

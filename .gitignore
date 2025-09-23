@@ -1,0 +1,36 @@
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de entorno y configuración local
+.env
+*.venv
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Entornos de Jupyter/VSCode
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# Archivos de datos (para no subir CSV pesados)
+data/
+*.csv
+*.xlsx
+
+# Salidas de análisis
+*.png
+*.jpg
+
+# Archivos de logs y temporales
+*.log
+*.tmp
+
+# Compilados de Python
+build/
+dist/
+*.egg-info/
