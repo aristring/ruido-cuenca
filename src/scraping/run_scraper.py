@@ -1,66 +1,103 @@
+import os
+import time
 import requests
 import pandas as pd
 from datetime import datetime, timedelta
 from tqdm import tqdm
-import time
 
-# Medir tiempo total
-start_time = time.time()
+# ==============================
+# CONFIGURACIÓN GENERAL
+# ==============================
+BASE_URL = "https://ierse.uazuay.edu.ec/proyectos/ruido-continuo/lib/getinfo_areachartfix.php"
 
-# Parámetros base
-base_url = "https://ierse.uazuay.edu.ec/proyectos/ruido-continuo/lib/getinfo_areachartfix.php"
-idw = "SCP01"  # puedes cambiarlo por otro nodo si deseas
-mx7 = 55
-mx21 = 45
+# Lista de sensores (idw)
+SENSORES = [
+    {"idw": "SCP01", "mx7": 55, "mx21": 45},
+    {"idw": "SCP06", "mx7": 60, "mx21": 50},
+    {"idw": "SCP07", "mx7": 60, "mx21": 50},
+    {"idw": "SCP08", "mx7": 60, "mx21": 50},
+    {"idw": "SCP09", "mx7": 70, "mx21": 65},
+    {"idw": "SCP13", "mx7": 55, "mx21": 45},
+    {"idw": "SCP16", "mx7": 55, "mx21": 45},
+    {"idw": "SCP17", "mx7": 55, "mx21": 45}
+]
 
-# Rango de fechas: último año
+# Carpeta de salida
+OUTPUT_DIR = "./data"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Rango de fechas: últimos 365 días
 end_date = datetime.today()
 start_date = end_date - timedelta(days=365)
 total_days = (end_date - start_date).days + 1
 
-# Lista para acumular datos
-all_data = []
+# ==============================
+# DESCARGA DE DATOS
+# ==============================
+start_time = time.time()
 
-# Iterar día por día con barra de progreso
-current_date = start_date
-for _ in tqdm(range(total_days), desc="Descargando datos", unit="día"):
-    fecha_str = current_date.strftime("%Y-%m-%d")  # ejemplo: 2025-09-20
-    url = f"{base_url}?idw={idw}&fch={fecha_str}&mx7={mx7}&mx21={mx21}"
+for sensor in SENSORES:
+    idw = sensor["idw"]
+    mx7 = sensor["mx7"]
+    mx21 = sensor["mx21"]
 
-    try:
-        resp = requests.get(url)
-        resp.raise_for_status()
+    print(f"\nDescargando datos para sensor {idw}...")
+    all_data = []
 
-        # El resultado es un array JS (ej: [['00:02', null,45], ...])
-        text = resp.text.strip()
-        text = text.replace("null", "None")  # Python entiende None
-        data = eval(text)  # convierte string en lista
+    current_date = start_date
+    for _ in tqdm(range(total_days), desc=f"{idw}", unit="día"):
+        fecha_str = current_date.strftime("%Y-%m-%d")
+        url = f"{BASE_URL}?idw={idw}&fch={fecha_str}&mx7={mx7}&mx21={mx21}"
 
-        for row in data:
-            hora = row[0]
-            val1 = row[1]  # medición real
+        try:
+            resp = requests.get(url, timeout=15)
+            resp.raise_for_status()
 
-            # Solo guardar si hay valor real
-            if val1 is not None:
-                all_data.append({
-                    "fecha": fecha_str,
-                    "hora": hora,
-                    "decibelios": val1
-                })
+            text = resp.text.strip()
+            if not text or text == "[]":
+                current_date += timedelta(days=1)
+                continue
 
-    except Exception as e:
-        print(f"Error con fecha {fecha_str}: {e}")
+            text = text.replace("null", "None")
+            try:
+                data = eval(text)
+            except Exception:
+                current_date += timedelta(days=1)
+                continue
 
-    current_date += timedelta(days=1)
+            for row in data:
+                if len(row) >= 2:
+                    hora = row[0]
+                    val = row[1]
+                    if val is not None:
+                        all_data.append({
+                            "sensor": idw,
+                            "fecha": fecha_str,
+                            "hora": hora,
+                            "decibelios": val
+                        })
 
-# Convertir a DataFrame
-df = pd.DataFrame(all_data)
+        except Exception as e:
+            print(f"Error con {idw} ({fecha_str}): {e}")
 
-# Guardar en CSV
-df.to_csv("ruido_cuenca.csv", index=False, encoding="utf-8")
+        time.sleep(0.3)
+        current_date += timedelta(days=1)
 
-# Medir tiempo final
+    # ==============================
+    # GUARDAR ARCHIVO CSV
+    # ==============================
+    if all_data:
+        df = pd.DataFrame(all_data)
+        output_path = os.path.join(OUTPUT_DIR, f"ruido_{idw}.csv")
+        df.to_csv(output_path, index=False, encoding="utf-8")
+        print(f"Datos guardados en {output_path}")
+    else:
+        print(f"No se obtuvieron datos para el sensor {idw}.")
+
+# ==============================
+# TIEMPO TOTAL
+# ==============================
 end_time = time.time()
 elapsed_time = end_time - start_time
-print(f"✅ Datos guardados en ruido_cuenca.csv")
-print(f"⏱️ Tiempo total: {elapsed_time:.2f} segundos")
+print(f"\nTiempo total: {elapsed_time:.2f} segundos")
+print(f"Archivos guardados en: {os.path.abspath(OUTPUT_DIR)}")
